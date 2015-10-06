@@ -49,8 +49,11 @@ def initialize() {
 
 def unlockedHandler(evt) {
     log.debug "Unlock detected at ${evt.device}"
+    def now = new Date();
+    def earlier = new Date(now.getTime() - 10000) // 10 seconds ago
     locks.each { lock ->
-        if ("locked" == lock.currentLock) {
+        def events = lock.eventsSince(earlier, [max: 1]);
+        if (0 == events.size  && "locked" == lock.currentLock) { // only unlock if no events recently and locked
             log.debug "Unlock ${lock}"
             lock.unlock();
         }
