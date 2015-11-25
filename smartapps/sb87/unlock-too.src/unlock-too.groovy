@@ -26,7 +26,8 @@ definition(
 
 preferences {
 	section("Locks") {
-		input "locks", "capability.lock", title:"Monitor and unlock these locks", required: true, multiple: true
+		input "monitorLocks", "capability.lock", title:"When this lock is unlocked...", required: true, multiple: true
+		input "targetLocks", "capability.lock", title:"...also unlock this lock", required: true, multiple: true
 	}
 }
 
@@ -44,14 +45,14 @@ def updated() {
 }
 
 def initialize() {
-	subscribe(locks, "lock.unlocked", unlockedHandler)
+	subscribe(monitorLocks, "lock.unlocked", unlockedHandler)
 }
 
 def unlockedHandler(evt) {
     log.debug "Unlock detected at ${evt.device}"
     def now = new Date();
     def earlier = new Date(now.getTime() - 10000) // 10 seconds ago
-    locks.each { lock ->
+    targetLocks.each { lock ->
         def events = lock.eventsSince(earlier, [max: 1]);
         if (0 == events.size  && "locked" == lock.currentLock) { // only unlock if no events recently and locked
             log.debug "Unlock ${lock}"
